@@ -148,6 +148,10 @@ var (
 			Entity: "address",
 			Action: "write",
 		}},
+		"/lnrpc.Lightning/DumpPrivKey": {{
+			Entity: "address",
+			Action: "read",
+		}},
 		"/lnrpc.Lightning/SignMessage": {{
 			Entity: "message",
 			Action: "write",
@@ -518,6 +522,33 @@ func (r *rpcServer) NewWitnessAddress(ctx context.Context,
 
 	rpcsLog.Infof("[newaddress] addr=%v", addr.String())
 	return &lnrpc.NewAddressResponse{Address: addr.String()}, nil
+}
+
+// DumpPrivKey returns the WIF-encoded private key for the specified
+// address.
+func (r *rpcServer) DumpPrivKey(ctx context.Context,
+	in *lnrpc.DumpPrivKeyRequest) (*lnrpc.DumpPrivKeyResponse, error) {
+
+	if in.Address == "" {
+		return nil, fmt.Errorf("need an address to return key for")
+	}
+
+	address, err := btcutil.DecodeAddress(in.Address, activeNetParams.Params)
+	if err != nil {
+		return nil, err
+	}
+
+	key, err := r.server.cc.wallet.GetPrivKey(address)
+	if err != nil {
+		return nil, err
+	}
+
+	wif, err := btcutil.NewWIF(key, activeNetParams.Params, false)
+	if err != nil {
+		return nil, err
+	}
+
+	return &lnrpc.DumpPrivKeyResponse{Key: wif.String()}, nil
 }
 
 var (

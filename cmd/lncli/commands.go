@@ -146,6 +146,48 @@ func newAddress(ctx *cli.Context) error {
 	return nil
 }
 
+var dumpPrivKeyCommand = cli.Command{
+	Name:	  "dumpprivkey",
+	Category: "Wallet",
+	Usage:	  "Reveal the private key of an address",
+	ArgsUsage: "[address]",
+	Description: `
+	Reveal the private key corresponding to a passed address.
+	Revealed key is WIF-encoded for portability.`,
+	Flags: []cli.Flag{
+		cli.StringFlag{
+			Name:  "address",
+			Usage: "the address whose private key to reveal",
+		},
+	},
+	Action: actionDecorator(dumpPrivKey),
+}
+
+func dumpPrivKey(ctx *cli.Context) error {
+	ctxb := context.Background()
+	client, cleanUp := getClient(ctx)
+	defer cleanUp()
+
+	var address string
+
+	switch {
+	case ctx.IsSet("address"):
+		address = ctx.String("address")
+	case ctx.Args().Present():
+		address = ctx.Args().First()
+	default:
+		return fmt.Errorf("address argument missing")
+	}
+
+	resp, err := client.DumpPrivKey(ctxb, &lnrpc.DumpPrivKeyRequest{Address: address})
+	if err != nil {
+		return err
+	}
+
+	printRespJSON(resp)
+	return nil
+}
+
 var sendCoinsCommand = cli.Command{
 	Name:      "sendcoins",
 	Category:  "On-chain",

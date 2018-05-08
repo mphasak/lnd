@@ -1252,6 +1252,15 @@
     "lnrpcDisconnectPeerResponse": {
       "type": "object"
     },
+    "lnrpcDumpPrivKeyResponse": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string",
+          "title": "/ The private key of the specified address"
+        }
+      }
+    },
     "lnrpcFeeReportResponse": {
       "type": "object",
       "properties": {
